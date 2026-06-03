@@ -15,15 +15,20 @@
 <body>
   <canvas id="game"></canvas>
 
-  <div id="ui">
-    <span>PUNTOS: <span id="score">0</span></span>
-    <span>NIVEL: <span id="levelNum">1</span></span>
-    <span>ARMA: <span id="weapon">Normal</span></span>
-    <span id="bombCount" style="display:none">BOMBAS: <span id="bombsLeft">0</span></span>
-    <span id="bombFullCount" style="display:none">TOTAL: <span id="bombFullLeft">0</span></span>
+  <span style="display:none" id="levelInfo"></span>
+  <div style="display:none">
+    <span id="score">0</span>
+    <span id="weapon">Normal</span>
+    <span id="levelNum">1</span>
+    <span id="bombCount"><span id="bombsLeft">0</span></span>
+    <span id="bombFullCount"><span id="bombFullLeft">0</span></span>
   </div>
 
-  <div id="levelIntro">NIVEL 1</div>
+  <div id="planetSelect" class="overlay" style="display:none;background:rgba(5,5,30,0.95)">
+    <h2 style="color:#0ff;font-size:34px;letter-spacing:4px;margin-bottom:20px">SELECCIONA PLANETA</h2>
+    <div id="planetGrid"></div>
+    <button class="btn btn-small" onclick="window.goBackToMenu()">VOLVER</button>
+  </div>
 
   <div id="gameOver">
     <div style="font-size:16px;color:#f88;letter-spacing:6px;margin-bottom:4px">— DERROTA —</div>
@@ -51,18 +56,7 @@
     <h1>SPACE SHOOTER</h1>
     <div class="subtitle">· 5 NIVELES · JEFE FINAL · MEJORAS ·</div>
     <div class="totalPts">PUNTOS TOTALES: <span id="menuPts">0</span></div>
-    <div class="diff-group">
-      <div class="planet-circle" data-diff="easy" onclick="window.setDiff('easy')">
-        <span class="planet-name">TIERRA</span>
-      </div>
-      <div class="planet-circle" data-diff="normal" onclick="window.setDiff('normal')">
-        <span class="planet-name">MARTE</span>
-      </div>
-      <div class="planet-circle" data-diff="hard" onclick="window.setDiff('hard')">
-        <span class="planet-name">JÚPITER</span>
-      </div>
-    </div>
-    <div id="diffDesc" class="diff-desc"></div>
+
     <button class="btn btn-success" onclick="window.gameStart()">COMENZAR</button>
     <button class="btn btn-small" onclick="window.gameOpenShop()">TIENDA</button>
     <button class="btn btn-small" onclick="window.gameOpenOptions()" style="margin-top:8px">OPCIONES</button>

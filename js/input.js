@@ -5,7 +5,7 @@ var keys = {};
 document.addEventListener('keydown', function (e) {
   keys[e.key] = true;
   var key = e.key;
-  if ((key === 'r' || key === 'R') && !gameRunning && menuDiv.style.display === 'none') startGame();
+  if ((key === 'r' || key === 'R') && !gameRunning && menuDiv.style.display === 'none') { score = 0; selectPlanet(currentPlanet); }
   if (key === ' ' || key === 'Space') e.preventDefault();
   if ((key === 'b' || key === 'B') && gameRunning) useBomb();
   if ((key === 'x' || key === 'X') && gameRunning) useBombFull();
@@ -18,9 +18,7 @@ document.addEventListener('keydown', function (e) {
     else if (key === 't' || key === 'T') { e.preventDefault(); window.gameOpenShop(); }
     else if (key === 'o' || key === 'O') { e.preventDefault(); window.gameOpenOptions(); }
     else if (key === 'r' || key === 'R') { e.preventDefault(); window.resetAllData(); }
-    else if (key === '1') { e.preventDefault(); var el = document.querySelector('.planet-circle[data-diff="easy"]'); if (el && !el.classList.contains('locked')) window.setDiff('easy'); }
-    else if (key === '2') { e.preventDefault(); var el = document.querySelector('.planet-circle[data-diff="normal"]'); if (el && !el.classList.contains('locked')) window.setDiff('normal'); }
-    else if (key === '3') { e.preventDefault(); var el = document.querySelector('.planet-circle[data-diff="hard"]'); if (el && !el.classList.contains('locked')) window.setDiff('hard'); }
+
   } else if (shopDiv.style.display !== 'none' && shopDiv.style.display !== '') {
     if (key === 'Escape') { e.preventDefault(); window.gameCloseShop(); }
     else if (key === 'ArrowLeft') { e.preventDefault(); window.shopSetTab(Math.max(shopTab - 1, 0)); }

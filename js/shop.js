@@ -143,6 +143,34 @@ function updateShopUI() {
           else descEl.textContent = item.desc + ' (COMPRADO)';
           info.appendChild(nameEl); info.appendChild(descEl); left.appendChild(symSpan); left.appendChild(info); div.appendChild(left);
           var m = document.createElement('span'); m.className = 'maxed'; m.textContent = 'MAX'; div.appendChild(m);
+        } else if (DRONE_EQUIP_IDS.indexOf(item.id) >= 0) {
+          if (idx === shopIndex) div.classList.add('selected');
+          var left = document.createElement('div'); left.className = 'shop-left';
+          var symSpan = document.createElement('span'); symSpan.className = 'item-sym'; symSpan.textContent = ITEM_SYMBOLS[item.id] || ' '; symSpan.style.color = WEAPON_GLOW[item.id] || TAB_COLORS[shopTab];
+          var info = document.createElement('div'); info.style.cssText = 'text-align:left';
+          var nameEl = document.createElement('div'); nameEl.className = 'name'; nameEl.textContent = item.name;
+          var descEl = document.createElement('div'); descEl.className = 'desc'; descEl.textContent = 'Comprados: ' + owned;
+          info.appendChild(nameEl); info.appendChild(descEl); left.appendChild(symSpan); left.appendChild(info); div.appendChild(left);
+          var eq = gameData.equippedDrones[item.id] || 0;
+          var mBtn = document.createElement('button'); mBtn.textContent = '-'; mBtn.style.minWidth = '30px'; mBtn.style.padding = '4px 8px';
+          if (eq <= 0) mBtn.disabled = true;
+          mBtn.onclick = function (id) { return function () { playClick(); gameData.equippedDrones[id] = Math.max(0, (gameData.equippedDrones[id] || 0) - 1); saveData(); updateShopUI(); }; }(item.id);
+          div.appendChild(mBtn);
+          var eqSpan = document.createElement('span'); eqSpan.style.cssText = 'color:#fff;min-width:24px;text-align:center;font-size:15px;letter-spacing:1px'; eqSpan.textContent = eq;
+          div.appendChild(eqSpan);
+          var pBtn = document.createElement('button'); pBtn.textContent = '+'; pBtn.style.minWidth = '30px'; pBtn.style.padding = '4px 8px';
+          if (eq >= owned || totalEquippedDrones() >= maxDroneCap()) pBtn.disabled = true;
+          pBtn.onclick = function (id) { return function () { playClick(); if ((gameData.equippedDrones[id] || 0) < (gameData.upgrades[id] || 0) && totalEquippedDrones() < maxDroneCap()) { gameData.equippedDrones[id] = (gameData.equippedDrones[id] || 0) + 1; saveData(); updateShopUI(); } }; }(item.id);
+          div.appendChild(pBtn);
+          var c = document.createElement('span'); c.className = 'cost'; c.textContent = actualCost + ' pts'; div.appendChild(c);
+          var btn = document.createElement('button'); btn.textContent = 'COMPRAR';
+          if (gameData.points < actualCost || owned >= item.max) btn.disabled = true;
+          btn.onclick = function (id, cost, itemIdx) {
+            return function () {
+              if (gameData.points >= cost) { playClick(); gameData.points -= cost; gameData.upgrades[id] = (gameData.upgrades[id] || 0) + 1; gameData.totalPointsSpent += cost; saveData(); shopIndex = itemIdx; updateShopUI(); }
+            };
+          }(item.id, actualCost, idx);
+          div.appendChild(btn);
         } else {
           shopRenderItem(div, item, owned, false, actualCost, idx, true, false, false);
         }
@@ -157,7 +185,7 @@ function openShop() {
   shopTab = 0; shopIndex = 0; updateShopUI(); menuDiv.style.display = 'none'; shopDiv.style.display = 'flex';
 }
 function closeShop() {
-  shopDiv.style.display = 'none'; menuDiv.style.display = 'flex'; menuPtsSpan.textContent = gameData.points; updateDiffUI();
+  shopDiv.style.display = 'none'; menuDiv.style.display = 'flex'; menuPtsSpan.textContent = gameData.points;
 }
 window.gameOpenShop = function () { playClick(); openShop(); };
 window.gameCloseShop = function () { playClick(); closeShop(); };

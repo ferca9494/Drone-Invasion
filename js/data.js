@@ -10,13 +10,13 @@ var ITEM_SYMBOLS = {
   droneHp: '\u2b1b', protectDrone: '\u25c8', selfDestruct: '\u2622', droneFusion: '\u25ce', smartDrone: '\u25b6', circularDrone: '\u21bb',
   skin_red: '\u25c6', skin_green: '\u25cf', skin_purple: '\u25b2', skin_gold: '\u2605', skin_white: '\u25c7',
   dash: '\u27eb', dashCooldown: '\u27f3', autoEquip: '\u21c4', droneAutoEquip: '\u21bb',
-  sobrecarga: '\u21c8', eficienciaMult: '\u23f1', inflacion: '\u2191',
+  sobrecarga: '\u21c8', eficienciaMult: '\u23f1', inflacion: '\u2191', maxDrones: '\u25a3',
   supercalifragilistico: '\u2605'
 };
 var TAB_COLORS = ['#f80', '#0f0', '#08f'];
-var DISPERSION_WEAPONS = ['double','triple','spread','dim4','chicken','sine'];
-var SPECIAL_LASER_WEAPONS = ['feline','homing','pulse','explosive','ricochet','cola','super','laser','superLaser','supercalifragilistico'];
-var WEAPON_GLOW = { double:'#a0f', triple:'#a0f', spread:'#a0f', dim4:'#a0f', chicken:'#a0f', sine:'#a0f', feline:'#f80', homing:'#f80', pulse:'#f80', explosive:'#f80', ricochet:'#f80', cola:'#f80', super:'#f80', laser:'#f80', superLaser:'#f80', supercalifragilistico:'#0f0' };
+var DISPERSION_WEAPONS = ['double', 'triple', 'spread', 'dim4', 'chicken', 'sine'];
+var SPECIAL_LASER_WEAPONS = ['feline', 'homing', 'pulse', 'explosive', 'ricochet', 'cola', 'super', 'laser', 'superLaser', 'supercalifragilistico'];
+var WEAPON_GLOW = { double: '#a0f', triple: '#a0f', spread: '#a0f', dim4: '#a0f', chicken: '#a0f', sine: '#a0f', feline: '#f80', homing: '#f80', pulse: '#f80', explosive: '#f80', ricochet: '#f80', cola: '#f80', super: '#f80', laser: '#f80', superLaser: '#f80', supercalifragilistico: '#0f0' };
 var SKIN_DATA = {
   default: { fill: '#09c', stroke: '#0cf', cockpit: '#0cf', engine: '0,200,255' },
   skin_red: { fill: '#c00', stroke: '#f44', cockpit: '#f44', engine: '255,50,50' },
@@ -60,6 +60,7 @@ var SHOP_ITEMS = [
   { id: 'supercalifragilistico', name: 'Perforante', desc: 'Bala verde que atraviesa todo', cost: 9999, max: 1, tab: 'armas' },
   { id: 'spread', name: 'Abanico', desc: 'Disparo en abanico', cost: 300, max: 1, tab: 'armas' },
   { id: 'drones', name: 'Minidron', desc: '1 dron orbital que dispara', cost: 300, max: 999, tab: 'drones' },
+  { id: 'maxDrones', name: 'Capacidad de Drones', desc: '+5 de capacidad maxima (20→25→30→35→40→45→50)', cost: 500, max: 6, tab: 'drones' },
   { id: 'droneAmmo', name: 'Municion Dron', desc: '+capacidad municion dron', cost: 200, max: 5, tab: 'drones' },
   { id: 'formationCircle', name: 'Formacion: Circulo', desc: 'Drones orbitan la nave', cost: 250, max: 1, tab: 'drones' },
   { id: 'formationTriangle', name: 'Formacion: Triangulo', desc: 'Drones en formacion triangular', cost: 250, max: 1, tab: 'drones' },
@@ -77,26 +78,45 @@ var SHOP_ITEMS = [
   { id: 'inflacion', name: 'Inflacion Momentanea', desc: 'cada recogida de multiplicador suma +1 al mult. de puntos (max 5)', cost: 300, max: 5, tab: 'nave' },
 ];
 var REWARD_POOLS = {
-  easy: { pool: ['spread','laser','homing','sine','cola','chicken','feline','dim4','drones','smartDrone','droneAmmo','formationCircle','formationTriangle'], count: 3 },
-  normal: { pool: ['pulse','explosive','ricochet','formationCentrifuge','droneHp','circularDrone','protectDrone','droneFusion'], count: 2 },
-  hard: { pool: ['super','superLaser','selfDestruct'], count: 1 }
+  easy: { pool: ['spread', 'laser', 'homing', 'sine', 'cola', 'chicken', 'feline', 'dim4', 'drones', 'smartDrone', 'droneAmmo', 'formationCircle', 'formationTriangle'], count: 3 },
+  normal: { pool: ['pulse', 'explosive', 'ricochet', 'formationCentrifuge', 'droneHp', 'circularDrone', 'protectDrone', 'droneFusion'], count: 2 },
+  hard: { pool: ['super', 'superLaser', 'selfDestruct'], count: 1 }
 };
 
 var DIFFICULTY = {
-  easy: { levelMax: [0,4,6,8,9,10], pointValue:3, enemyPointValue:5, enemyPowerupChance:0.3, asteroidPowerupChance:0.15, enemyHpBonus:0, bossHpMult:1 },
-  normal: { levelMax: [0,8,10,12,14,15], pointValue:6, enemyPointValue:10, enemyPowerupChance:0.45, asteroidPowerupChance:0.25, enemyHpBonus:0, bossHpMult:2 },
-  hard: { levelMax: [0,10,12,14,16,18], pointValue:9, enemyPointValue:15, enemyPowerupChance:0.5, asteroidPowerupChance:0.3, enemyHpBonus:1, bossHpMult:3 }
+  easy: { levelMax: [0, 3, 5, 7, 7, 9], riskThresholds: [60, 120, 240], pointValue: 3, enemyPointValue: 5, enemyPowerupChance: 0.3, asteroidPowerupChance: 0.15, enemyHpBonus: 0, bossHpMult: 1 },
+  normal: { levelMax: [0, 4, 8, 10, 10, 12], riskThresholds: [80, 160, 320], pointValue: 6, enemyPointValue: 10, enemyPowerupChance: 0.45, asteroidPowerupChance: 0.25, enemyHpBonus: 0, bossHpMult: 2 },
+  hard: { levelMax: [0, 5, 9, 13, 13, 15], riskThresholds: [110, 220, 440], pointValue: 9, enemyPointValue: 15, enemyPowerupChance: 0.5, asteroidPowerupChance: 0.3, enemyHpBonus: 1, bossHpMult: 3 }
 };
+var RISK_MULTIPLIERS = [1.0, 1.25, 1.5, 2.0];
 var PLANET_DATA = {
-  easy: { name: 'TIERRA', desc: 'Detén la invasión del planeta · Dificultad Normal' },
-  normal: { name: 'MARTE', desc: 'Asalto a base enemiga · Dificultad Media' },
-  hard: { name: 'JÚPITER', desc: 'Ataque directo a la base principal · Dificultad Difícil' },
+  tierra: {
+    id: 'tierra', name: 'TIERRA', desc: 'Detén la invasión del planeta', difficulty: 'easy',
+    unlock: null,
+    boss: { name: 'Dron Conquistador', maxHp: 100, w: 80, h: 60, speed: 1.5, bodyColor: '#800', strokeColor: '#f44', cockpitColor: '#f44', wingColor: '#a00', engineGradient: '255,68,68' }
+  },
+  marte: {
+    id: 'marte', name: 'MARTE', desc: 'Asalto a base enemiga', difficulty: 'normal',
+    unlock: [{ planet: 'tierra', count: 1 }],
+    boss: { name: 'Mecha Guardian', maxHp: 200, w: 90, h: 70, speed: 1.2, bodyColor: '#860', strokeColor: '#fa0', cockpitColor: '#fa0', wingColor: '#a40', engineGradient: '255,170,0' }
+  },
+  jupiter: {
+    id: 'jupiter', name: 'JÚPITER', desc: 'Ataque directo a la base principal', difficulty: 'hard',
+    unlock: [{ planet: 'marte', count: 1 }],
+    boss: { name: 'Ciudadela', maxHp: 300, w: 100, h: 80, speed: 0.8, bodyColor: '#808', strokeColor: '#f0f', cockpitColor: '#f0f', wingColor: '#a0a', engineGradient: '255,0,255' }
+  },
+  saturno: {
+    id: 'saturno', name: 'SATURNO', desc: 'Infiltración en el anillo enemigo', difficulty: 'normal',
+    unlock: [{ planet: 'jupiter', count: 1 }],
+    boss: { name: 'Señor de los Anillos', maxHp: 220, w: 90, h: 70, speed: 1.0, bodyColor: '#848', strokeColor: '#f0f', cockpitColor: '#f0f', wingColor: '#a0a', engineGradient: '200,50,200' }
+  },
+  neptuno: {
+    id: 'neptuno', name: 'NEPTUNO', desc: 'Enfrentamiento final', difficulty: 'hard',
+    unlock: [{ planet: 'tierra', count: 5 }, { planet: 'marte', count: 5 }],
+    boss: { name: 'Leviatán', maxHp: 400, w: 110, h: 90, speed: 0.7, bodyColor: '#044', strokeColor: '#0ff', cockpitColor: '#0ff', wingColor: '#088', engineGradient: '0,200,200' }
+  }
 };
-var BOSS_DATA = {
-  easy: { name: 'Dron Conquistador', maxHp: 100, w: 80, h: 60, speed: 1.5, bodyColor: '#800', strokeColor: '#f44', cockpitColor: '#f44', wingColor: '#a00', engineGradient: '255,68,68' },
-  normal: { name: 'Mecha Guardian', maxHp: 200, w: 90, h: 70, speed: 1.2, bodyColor: '#860', strokeColor: '#fa0', cockpitColor: '#fa0', wingColor: '#a40', engineGradient: '255,170,0' },
-  hard: { name: 'Ciudadela', maxHp: 300, w: 100, h: 80, speed: 0.8, bodyColor: '#808', strokeColor: '#f0f', cockpitColor: '#f0f', wingColor: '#a0a', engineGradient: '255,0,255' },
-};
+var PLANET_IDS = ['tierra', 'marte', 'jupiter', 'saturno', 'neptuno'];
 var BOSS_DATA_ESPIA = { name: 'El Espia', maxHp: 200, w: 80, h: 60, speed: 1.5, bodyColor: '#060', strokeColor: '#0f0', cockpitColor: '#0f0', wingColor: '#090', engineGradient: '0,255,0' };
 var SPECIAL_LEVEL_CONFIG = { levelMax: [0, 6, 8, 10], asteroidRate: 20, enemyHpBonus: 4, asteroidSize: 'small' };
 
@@ -112,7 +132,7 @@ var ARMES_CATEGORIES = [
 ];
 var DRONES_CATEGORIES = [
   { name: 'Tipo de Dron', items: ['drones', 'smartDrone', 'circularDrone', 'protectDrone'] },
-  { name: 'Atributos', items: ['droneAmmo', 'droneHp'] },
+  { name: 'Atributos', items: ['maxDrones', 'droneAmmo', 'droneHp'] },
   { name: 'Formación', items: ['formationCircle', 'formationTriangle', 'formationCentrifuge'] },
   { name: 'Habilidades Activas', items: ['selfDestruct', 'droneFusion', 'droneAutoEquip'] },
 ];

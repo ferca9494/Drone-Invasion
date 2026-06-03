@@ -3,7 +3,7 @@ var scoreSpan, weaponSpan, levelNumSpan, bombCountSpan, bombsLeftSpan, bombFullC
 var gameOverDiv, earnedPtsSpan, finalScoreSpan;
 var menuDiv, shopDiv, optionsDiv, menuPtsSpan, shopPtsSpan, shopItemsDiv, uiDiv;
 var levelIntroDiv, bossHpBar, bossHpFill;
-var optSoundSpan, optMouseSpan, diffDescSpan;
+var optSoundSpan, optMouseSpan;
 
 function initDOM() {
   canvas = document.getElementById('game');
@@ -27,11 +27,10 @@ function initDOM() {
   optionsDiv = document.getElementById('options');
   optSoundSpan = document.getElementById('optSound');
   optMouseSpan = document.getElementById('optMouse');
-  uiDiv = document.getElementById('ui');
-  levelIntroDiv = document.getElementById('levelIntro');
+  levelIntroDiv = document.getElementById('levelInfo');
+  uiDiv = document.getElementById('levelInfo');
   bossHpBar = document.getElementById('bossHpBar');
   bossHpFill = document.getElementById('bossHpFill');
-  diffDescSpan = document.getElementById('diffDesc');
 }
 
 function loop() { update(); draw(); requestAnimationFrame(loop); }
@@ -39,11 +38,7 @@ function loop() { update(); draw(); requestAnimationFrame(loop); }
 function init() {
   initDOM(); loadData(); loadOptions(); initAudio(); initStars();
   menuDiv.style.display = 'flex'; menuPtsSpan.textContent = gameData.points;
-  updateDiffUI(); updateOptionsUI();
-  var diffEl = document.querySelector('.planet-circle[data-diff="' + difficulty + '"]');
-  if (!diffEl || diffEl.classList.contains('locked')) {
-    difficulty = 'easy'; gameData.difficulty = 'easy'; updateDiffUI();
-  }
+  updateOptionsUI();
   loop();
 }
 init();

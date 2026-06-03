@@ -5,7 +5,7 @@ function weaponLabel(w) { var n = { spread: 'Ab', triple: 'Tr', laser: 'La', hom
 
 function drawBoss() {
   if (!boss) return;
-  var bd = isSpecialLevel ? BOSS_DATA_ESPIA : (BOSS_DATA[difficulty] || BOSS_DATA.easy);
+  var bd = isSpecialLevel ? BOSS_DATA_ESPIA : PLANET_DATA[currentPlanet].boss;
   ctx.save();
   ctx.translate(boss.x, boss.y);
   ctx.fillStyle = bd.bodyColor;
@@ -515,9 +515,18 @@ function draw() {
   for (hi = player.hp; hi < player.maxHp; hi++) hpStr += '\u2661';
   c.fillText(hpStr, 16, 22);
   c.fillStyle = '#ff0'; c.textAlign = 'center';
-  c.fillText('PTS: ' + score, 240, 22);
+  c.fillText('PTS: ' + score, 225, 22);
+  var kills = (currentPlanet && gameData.planetKills && gameData.planetKills[currentPlanet]) || 0;
+  c.fillStyle = '#f44'; c.textAlign = 'left';
+  c.fillText('\u2620 ' + kills, 302, 22);
   c.fillStyle = '#0ff'; c.textAlign = 'right';
-  c.fillText((PLANET_DATA[difficulty] ? PLANET_DATA[difficulty].name + ' ' : '') + level, 464, 22);
+  if (isSpecialLevel) {
+    var slLabel = level === 3 ? 'ESPÍA' : 'ESPECIAL ' + level;
+    c.fillText(slLabel, 464, 22);
+  } else {
+    var pname = currentPlanet && PLANET_DATA[currentPlanet] ? PLANET_DATA[currentPlanet].name : '';
+    c.fillText((pname ? pname.toUpperCase() + ' ' : '') + level, 464, 22);
+  }
 
   var by = 660;
   c.fillStyle = 'rgba(0,10,20,0.88)';

@@ -3,6 +3,7 @@
 // ============================================================
 var gameRunning = false, paused = false, score = 0, screenShake = 0, frame = 0, lastPlayerShot = 0, baseFireRate = 250;
 var isSpecialLevel = false;
+var currentPlanet = 'tierra';
 var shipImg = new Image(); shipImg.src = 'assets/nave-sprite1.png';
 var player = { x: 240, y: 640, w: 30, h: 38, speed: 4, hp: 3, maxHp: 3, invincible: 0, weapon: 'normal', hasShield: false, fusion: null };
 var playerLastDirX = 0, playerLastDirY = -1;
@@ -89,19 +90,19 @@ function resetPlayer() {
 function initDrones() {
   drones = [];
   var hpBase = 1 + (gameData.upgrades.droneHp || 0);
-  var n = gameData.upgrades.drones || 0;
+  var n = gameData.equippedDrones ? (gameData.equippedDrones.drones || 0) : (gameData.upgrades.drones || 0);
   for (var i = 0; i < n; i++) {
     drones.push({ angle: (i / n) * Math.PI * 2, dist: 38, shootTimer: 0, hp: hpBase, maxHp: hpBase, type: 'normal' });
   }
-  var sn = gameData.upgrades.smartDrone || 0;
+  var sn = gameData.equippedDrones ? (gameData.equippedDrones.smartDrone || 0) : (gameData.upgrades.smartDrone || 0);
   for (var i = 0; i < sn; i++) {
     drones.push({ angle: (i / sn) * Math.PI * 2, dist: 38, shootTimer: 0, hp: hpBase, maxHp: hpBase, type: 'smart' });
   }
-  var cn = gameData.upgrades.circularDrone || 0;
+  var cn = gameData.equippedDrones ? (gameData.equippedDrones.circularDrone || 0) : (gameData.upgrades.circularDrone || 0);
   for (var i = 0; i < cn; i++) {
     drones.push({ angle: (i / cn) * Math.PI * 2, dist: 38, shootTimer: 0, hp: hpBase, maxHp: hpBase, type: 'circular' });
   }
-  var pc = gameData.upgrades.protectDrone || 0;
+  var pc = gameData.equippedDrones ? (gameData.equippedDrones.protectDrone || 0) : (gameData.upgrades.protectDrone || 0);
   for (var i = 0; i < pc; i++) {
     drones.push({ angle: (i / pc) * Math.PI * 2, dist: 40, shootTimer: 0, protect: true, hp: 999 });
   }
@@ -115,10 +116,8 @@ function resetGame() {
   autoEquipTimer = 0; droneAutoEquipTimer = 0;
   boss = null;
   level = 1; enemiesSpawned = 0; enemiesKilledInLevel = 0;
-  gameState = 'levelIntro'; stateTimer = 120; levelIntroText = 'NIVEL 1';
+  gameState = 'levelIntro'; stateTimer = 30;
   isSpecialLevel = false;
-  levelIntroDiv.textContent = levelIntroText;
-  levelIntroDiv.style.display = 'block';
   bossHpBar.style.display = 'none';
   bossHpBar.classList.remove('green');
   resetPlayer();
@@ -129,8 +128,20 @@ function resetGame() {
 // ============================================================
 // SPAWN
 // ============================================================
+function getRiskLevel() {
+  if (isSpecialLevel) return 0;
+  var thresholds = DIFFICULTY[difficulty].riskThresholds;
+  var kills = gameData.planetKills[currentPlanet] || 0;
+  if (kills >= thresholds[2]) return 3;
+  if (kills >= thresholds[1]) return 2;
+  if (kills >= thresholds[0]) return 1;
+  return 0;
+}
+function getRiskMultiplier() { return RISK_MULTIPLIERS[getRiskLevel()]; }
+function getEffectiveMaxEnemies() { return Math.round((isSpecialLevel ? SPECIAL_LEVEL_CONFIG.levelMax[level] : DIFFICULTY[difficulty].levelMax[level]) * getRiskMultiplier()); }
+function onEnemyKilled() { if (!isSpecialLevel && currentPlanet && gameData.planetKills) { gameData.planetKills[currentPlanet] = (gameData.planetKills[currentPlanet] || 0) + 1; } }
 function spawnEnemy() {
-  if (enemiesSpawned >= (isSpecialLevel ? SPECIAL_LEVEL_CONFIG.levelMax[level] : DIFFICULTY[difficulty].levelMax[level])) return;
+  if (enemiesSpawned >= getEffectiveMaxEnemies()) return;
   if (isSpecialLevel) {
     var type = 3;
     enemies.push({ x: rand(30, 450), y: -30, w: 36, h: 36, hp: 4 + Math.floor(level * 2) + SPECIAL_LEVEL_CONFIG.enemyHpBonus, speed: rand(0.8, 1.8), shootTimer: rand(0, 60), type: type });
@@ -138,7 +149,6 @@ function spawnEnemy() {
     return;
   }
   var threat = gameData.totalPointsSpent || 0;
-  if (gameData.threatBarLocked) threat = 0;
   var unlocked = [0];
   if (threat >= 1000) unlocked.push(2);
   if (threat >= 2000) unlocked.push(1);
@@ -186,7 +196,7 @@ function spawnPoints(x, y, count, value) {
 // BOSS
 // ============================================================
 function spawnBoss() {
-  var bd = BOSS_DATA[difficulty] || BOSS_DATA.easy;
+  var bd = PLANET_DATA[currentPlanet].boss;
   boss = {
     x: 240, y: -80, w: bd.w, h: bd.h, hp: bd.maxHp, maxHp: bd.maxHp,
     speed: bd.speed, dir: 1, shootTimer: 0, moveTimer: 0, droneTimer: 0
@@ -196,7 +206,6 @@ function spawnBoss() {
 }
 function updateBoss() {
   if (!boss) return;
-  var bd = BOSS_DATA[difficulty] || BOSS_DATA.easy;
   if (boss.y < 80) { boss.y += 1; return; }
   boss.x += boss.speed * boss.dir;
   if (boss.x > 400) boss.dir = -1;
@@ -332,12 +341,10 @@ window.startSpecialLevel = function() {
   level = 1;
   enemiesSpawned = 0;
   gameState = 'levelIntro';
-  stateTimer = 90;
-  levelIntroText = 'NIVEL ESPECIAL';
+  stateTimer = 30;
+  levelIntroText = 'ESPECIAL 1';
   levelIntroDiv.textContent = levelIntroText;
   weaponSpan.textContent = weaponLabel(player.weapon);
-  scoreSpan.textContent = '0';
-  levelNumSpan.textContent = '1';
   gameRunning = true;
 };
 
@@ -380,18 +387,35 @@ function shoot() {
       playLaser();
       var isSuper = special === 'superLaser';
       for (var li = 0; li < fb.length; li++) {
-        var bx = fb[li].x;
-        lasers.push({ x: bx, y: player.y - 19, length: 600, timer: 0, super: isSuper });
+        var bx = fb[li].x, by = player.y - 19;
+        var dx = fb[li].vx || 0, dy = fb[li].vy || -1;
+        var mag = Math.sqrt(dx*dx + dy*dy);
+        if (mag < 0.01) { dx = 0; dy = -1; mag = 1; }
+        var nx = dx/mag, ny = dy/mag;
+        var len = 600;
+        var ex = bx + nx*len, ey = by + ny*len;
+        lasers.push({ x: bx, y: by, x2: ex, y2: ey, timer: 0, super: isSuper });
         var dmg = isSuper ? 3 : 1;
         for (var ei = 0; ei < enemies.length; ei++) {
           var e = enemies[ei];
-          if (Math.abs(e.x - bx) < 20 && e.y < player.y - 19 && e.y > player.y - 19 - 600) { e.hp -= dmg; if (e.hp <= 0) { addExplosion(e.x, e.y, '#f44', 16); playExplosion(); enemies.splice(ei, 1); score += 100 * scoreMult; screenShake = 6; ei--; } }
+          var t = Math.max(0, Math.min(1, ((e.x - bx)*nx + (e.y - by)*ny) / len));
+          var cx = bx + t*nx*len, cy = by + t*ny*len;
+          var dist2 = (e.x - cx)*(e.x - cx) + (e.y - cy)*(e.y - cy);
+          if (dist2 < 400) { e.hp -= dmg; if (e.hp <= 0) { addExplosion(e.x, e.y, '#f44', 16); playExplosion(); enemies.splice(ei, 1); onEnemyKilled(); score += 100 * scoreMult; screenShake = 6; ei--; } }
         }
         for (var ai = 0; ai < asteroids.length; ai++) {
           var a = asteroids[ai];
-          if (Math.abs(a.x - bx) < (isSuper ? 25 : 25) && a.y < player.y - 19 && a.y > player.y - 19 - 600) { a.hp -= dmg; if (a.hp <= 0) { onAsteroidDestroy(a, ai); ai--; } }
+          var t = Math.max(0, Math.min(1, ((a.x - bx)*nx + (a.y - by)*ny) / len));
+          var cx = bx + t*nx*len, cy = by + t*ny*len;
+          var dist2 = (a.x - cx)*(a.x - cx) + (a.y - cy)*(a.y - cy);
+          if (dist2 < (isSuper ? 625 : 625)) { a.hp -= dmg; if (a.hp <= 0) { onAsteroidDestroy(a, ai); ai--; } }
         }
-        if (boss && Math.abs(boss.x - bx) < (isSuper ? 45 : 45) && boss.y < player.y - 19 && boss.y > player.y - 19 - 600) boss.hp -= isSuper ? 2 : 0.5;
+        if (boss) {
+          var t = Math.max(0, Math.min(1, ((boss.x - bx)*nx + (boss.y - by)*ny) / len));
+          var cx = bx + t*nx*len, cy = by + t*ny*len;
+          var dist2 = (boss.x - cx)*(boss.x - cx) + (boss.y - cy)*(boss.y - cy);
+          if (dist2 < (isSuper ? 2025 : 2025)) boss.hp -= isSuper ? 2 : 0.5;
+        }
       }
       var ammoCost = isSuper ? 3 : 1;
       weaponAmmo -= ammoCost;
@@ -501,7 +525,7 @@ function shoot() {
       lasers.push({ x: player.x, y: player.y - 19, length: 600, timer: 0, super: true });
       for (var sli = 0; sli < enemies.length; sli++) {
         var sle = enemies[sli];
-        if (Math.abs(sle.x - player.x) < 20 && sle.y < player.y - 19 && sle.y > player.y - 19 - 600) { sle.hp -= 3; if (sle.hp <= 0) { addExplosion(sle.x, sle.y, '#f44', 16); playExplosion(); enemies.splice(sli, 1); score += 100 * scoreMult; screenShake = 6; sli--; } }
+        if (Math.abs(sle.x - player.x) < 20 && sle.y < player.y - 19 && sle.y > player.y - 19 - 600) { sle.hp -= 3; if (sle.hp <= 0) { addExplosion(sle.x, sle.y, '#f44', 16); playExplosion(); enemies.splice(sli, 1); onEnemyKilled(); score += 100 * scoreMult; screenShake = 6; sli--; } }
       }
       for (var sli = 0; sli < asteroids.length; sli++) {
         var sla = asteroids[sli];
@@ -530,7 +554,7 @@ function shootLaser() {
   var bx = player.x, by = player.y - 19;
   for (var i = 0; i < enemies.length; i++) {
     var e = enemies[i];
-    if (Math.abs(e.x - bx) < 20 && e.y < by && e.y > by - 600) { e.hp--; if (e.hp <= 0) { addExplosion(e.x, e.y, '#f44', 16); playExplosion(); enemies.splice(i, 1); score += 100 * scoreMult; screenShake = 6; i--; } }
+    if (Math.abs(e.x - bx) < 20 && e.y < by && e.y > by - 600) { e.hp--; if (e.hp <= 0) { addExplosion(e.x, e.y, '#f44', 16); playExplosion(); enemies.splice(i, 1); onEnemyKilled(); score += 100 * scoreMult; screenShake = 6; i--; } }
   }
   for (var i = 0; i < asteroids.length; i++) {
     var a = asteroids[i];
@@ -628,7 +652,7 @@ function droneShoot(drone) {
       lasers.push({ x: lx, y: ly, x2: ex, y2: ey, timer: 0 });
       for (var i = 0; i < enemies.length; i++) {
         var e = enemies[i];
-        if (Math.abs(e.x - lx) < 20 && ((e.y < ly && e.y > ey) || (e.y > ly && e.y < ey))) { e.hp--; if (e.hp <= 0) { addExplosion(e.x, e.y, '#f44', 16); playExplosion(); enemies.splice(i, 1); score += 100 * scoreMult; screenShake = 6; i--; } }
+        if (Math.abs(e.x - lx) < 20 && ((e.y < ly && e.y > ey) || (e.y > ly && e.y < ey))) { e.hp--; if (e.hp <= 0) { addExplosion(e.x, e.y, '#f44', 16); playExplosion(); enemies.splice(i, 1); onEnemyKilled(); score += 100 * scoreMult; screenShake = 6; i--; } }
       }
       if (boss && Math.abs(boss.x - lx) < 45 && ((boss.y < ly && boss.y > ey) || (boss.y > ly && boss.y < ey))) boss.hp -= 0.3;
       break;
@@ -688,7 +712,7 @@ function droneShoot(drone) {
       lasers.push({ x: slx, y: sly, x2: sex, y2: sey, timer: 0, super: true });
       for (var i = 0; i < enemies.length; i++) {
         var e = enemies[i];
-        if (Math.abs(e.x - slx) < 25 && ((e.y < sly && e.y > sey) || (e.y > sly && e.y < sey))) { e.hp -= 3; if (e.hp <= 0) { addExplosion(e.x, e.y, '#f44', 16); playExplosion(); enemies.splice(i, 1); score += 100 * scoreMult; screenShake = 6; i--; } }
+        if (Math.abs(e.x - slx) < 25 && ((e.y < sly && e.y > sey) || (e.y > sly && e.y < sey))) { e.hp -= 3; if (e.hp <= 0) { addExplosion(e.x, e.y, '#f44', 16); playExplosion(); enemies.splice(i, 1); onEnemyKilled(); score += 100 * scoreMult; screenShake = 6; i--; } }
       }
       if (boss && Math.abs(boss.x - slx) < 45 && ((boss.y < sly && boss.y > sey) || (boss.y > sly && boss.y < sey))) boss.hp -= 2;
       break;
@@ -790,6 +814,7 @@ function hitPlayer() {
   if (player.hp <= 0) {
     gameRunning = false;
     gameOverDiv.style.display = 'block';
+    uiDiv.style.display = 'none';
     earnedPtsSpan.textContent = score;
     document.getElementById('finalScore2').textContent = gameData.points + score;
     gameData.points += score;
@@ -821,17 +846,22 @@ function onAsteroidDestroy(a, ai) {
 // LEVEL MANAGEMENT
 // ============================================================
 function startLevelIntro() {
-  stateTimer = 90;
+  stateTimer = 30;
   if (isSpecialLevel) {
-    levelIntroText = level === 3 ? 'El Espia' : 'NIVEL ' + level;
+    levelIntroText = level === 3 ? 'ESPÍA' : 'ESPECIAL ' + level;
   } else {
-    levelIntroText = level === 5 ? (BOSS_DATA[difficulty] ? BOSS_DATA[difficulty].name : 'JEFE FINAL') : 'NIVEL ' + level;
+    var pd = PLANET_DATA[currentPlanet];
+    levelIntroText = (pd ? pd.name.toUpperCase() : 'NIVEL') + ' ' + level;
   }
   levelIntroDiv.textContent = levelIntroText;
   levelIntroDiv.style.display = 'block';
   gameState = 'levelIntro';
 }
 function nextLevel() {
+  if (!isSpecialLevel && gameData.beatenPlanets.indexOf(currentPlanet) === -1) {
+    gameData.beatenPlanets.push(currentPlanet);
+  }
+  saveData();
   level++;
   enemiesSpawned = 0;
   enemiesKilledInLevel = 0;
@@ -844,7 +874,7 @@ function nextLevel() {
 function checkLevelComplete() {
   if (gameState === 'bossFight') return;
   var maxLevel = isSpecialLevel ? 3 : 5;
-  var allSpawned = enemiesSpawned >= (isSpecialLevel ? SPECIAL_LEVEL_CONFIG.levelMax[level] : DIFFICULTY[difficulty].levelMax[level]);
+  var allSpawned = enemiesSpawned >= getEffectiveMaxEnemies();
   var allDead = enemies.length === 0;
   if (allSpawned && allDead) {
     if (level < maxLevel) {
@@ -852,15 +882,16 @@ function checkLevelComplete() {
     } else {
       gameState = 'bossFight';
       if (isSpecialLevel) {
-        levelIntroText = 'El Espia';
+        levelIntroText = 'ESPÍA';
         spawnBossEspia();
       } else {
-        levelIntroText = BOSS_DATA[difficulty] ? BOSS_DATA[difficulty].name : 'JEFE FINAL';
+        var pd = PLANET_DATA[currentPlanet];
+        levelIntroText = (pd ? pd.name.toUpperCase() : 'NIVEL') + ' 5';
         spawnBoss();
       }
       levelIntroDiv.textContent = levelIntroText;
       levelIntroDiv.style.display = 'block';
-      stateTimer = 90;
+      stateTimer = 60;
     }
   }
 }
@@ -916,8 +947,8 @@ function gameWon() {
     } else {
       var el = document.createElement('div'); el.className = 'reward-item'; el.textContent = '(sin recompensas disponibles)'; rl.appendChild(el);
     }
-    if (difficulty === 'easy' && gameData.beatenDifficulty.indexOf('easy') === -1) { gameData.beatenDifficulty.push('easy'); }
-    if (difficulty === 'normal' && gameData.beatenDifficulty.indexOf('normal') === -1) { gameData.beatenDifficulty.push('normal'); }
+    gameData.bossDefeats[currentPlanet] = (gameData.bossDefeats[currentPlanet] || 0) + 1;
+    if (gameData.beatenPlanets.indexOf(currentPlanet) === -1) { gameData.beatenPlanets.push(currentPlanet); }
   }
   document.getElementById('rewardScreen').style.display = 'flex';
   document.getElementById('finalScore').textContent = score;
@@ -941,7 +972,6 @@ function update() {
   if (gameState === 'levelIntro') {
     stateTimer--;
     if (stateTimer <= 0) {
-      levelIntroDiv.style.display = 'none';
       if (level === 5 && enemiesSpawned >= DIFFICULTY[difficulty].levelMax[5] && boss) gameState = 'bossFight';
       else gameState = 'playing';
     }
@@ -1118,7 +1148,7 @@ function update() {
       for (var sli = 0; sli < enemies.length; sli++) {
         var sle = enemies[sli];
         var onBeam = (sle.x > Math.min(lx, lex) - 25 && sle.x < Math.max(lx, lex) + 25 && sle.y > Math.min(ly, ley) && sle.y < Math.max(ly, ley));
-        if (onBeam) { sle.hp -= 0.5; if (sle.hp <= 0) { addExplosion(sle.x, sle.y, '#f44', 16); playExplosion(); spawnPoints(sle.x, sle.y, 4, DIFFICULTY[difficulty].enemyPointValue); if (Math.random() < DIFFICULTY[difficulty].enemyPowerupChance) spawnPowerup(sle.x, sle.y); enemies.splice(sli, 1); score += 100 * scoreMult; screenShake = 6; sli--; } }
+        if (onBeam) { sle.hp -= 0.5; if (sle.hp <= 0) { addExplosion(sle.x, sle.y, '#f44', 16); playExplosion(); spawnPoints(sle.x, sle.y, 4, DIFFICULTY[difficulty].enemyPointValue); if (Math.random() < DIFFICULTY[difficulty].enemyPowerupChance) spawnPowerup(sle.x, sle.y); enemies.splice(sli, 1); onEnemyKilled(); score += 100 * scoreMult; screenShake = 6; sli--; } }
       }
       for (var sla = 0; sla < asteroids.length; sla++) {
         var asla = asteroids[sla];
@@ -1339,7 +1369,7 @@ function update() {
           addExplosion(se.x, se.y, '#f80', 20); playExplosion();
           spawnPoints(se.x, se.y, 6, DIFFICULTY[difficulty].enemyPointValue);
           if (Math.random() < DIFFICULTY[difficulty].enemyPowerupChance) spawnPowerup(se.x, se.y);
-          enemies.splice(sei, 1); screenShake = 8;
+          enemies.splice(sei, 1); onEnemyKilled(); screenShake = 8;
         }
       }
       for (var sai = asteroids.length - 1; sai >= 0; sai--) {
@@ -1427,6 +1457,7 @@ function update() {
           if (Math.random() < DIFFICULTY[difficulty].enemyPowerupChance) spawnPowerup(enemies[ei].x, enemies[ei].y);
           if (Math.random() < 0.25) hearts.push({ x: enemies[ei].x, y: enemies[ei].y, w: 16, h: 16, vy: 0.8, life: 300 });
           enemies.splice(ei, 1);
+          onEnemyKilled();
           screenShake = 6;
         }
         break;
