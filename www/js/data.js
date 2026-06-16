@@ -2,7 +2,7 @@
 // SHOP DATA
 // ============================================================
 var ITEM_SYMBOLS = {
-  hp: '\u2665', speed: '\u27a4', fireRate: '\u26a1', shield: '\u2666', shipAmmo: '\u25a3', autofire: '\u27f2', bomb: '\u2297', bombFull: '\u2622', magnet: '\u2318', heart: '\u2764', weaponSlots: '\u25a4', weaponFusion: '\u25ce',
+  hp: '\u2665', speed: '\u27a4', fireRate: '\u26a1', shield: '\u2666', shipAmmo: '\u25a3', bomb: '\u2297', bombFull: '\u2622', magnet: '\u2318', heart: '\u2764', weaponSlots: '\u25a4', weaponFusion: '\u25ce',
   laser: '\u25c0', homing: '\u25ce', double: '\u2551', pulse: '\u25ef', explosive: '\u2726', ricochet: '\u27f3', super: '\u2605',
   sine: '\u223f', cola: '\u25cf', feline: '\u25b2', chicken: '\u2727', superLaser: '\u229e', dim4: '\u271a',
   spread: '\u2b21', triple: '\u4e09',
@@ -31,7 +31,6 @@ var SHOP_ITEMS = [
   { id: 'fireRate', name: 'Cañon Rapido', desc: '-15ms entre disparos', cost: 200, max: 3, tab: 'nave' },
   { id: 'shield', name: 'Escudo', desc: '1 golpe gratis al empezar', cost: 300, max: 1, tab: 'nave' },
   { id: 'shipAmmo', name: 'Municion Nave', desc: '+capacidad municion nave', cost: 200, max: 5, tab: 'nave' },
-  { id: 'autofire', name: 'Autodisparo', desc: 'Dispara automaticamente al presionar espacio', cost: 250, max: 1, tab: 'nave' },
   { id: 'bomb', name: 'Antibalas', desc: 'Tecla B: destruye solo balas enemigas (+2 por nivel)', cost: 200, max: 3, tab: 'nave' },
   { id: 'bombFull', name: 'Bomba Total', desc: 'Tecla X: destruye todo (solo 1)', cost: 500, max: 1, tab: 'nave' },
   { id: 'magnet', name: 'Imán', desc: 'Atrae objetos hasta +15px por nivel', cost: 200, max: 10, tab: 'nave' },
@@ -139,7 +138,7 @@ var DRONES_CATEGORIES = [
 var NAVE_CATEGORIES = [
   { name: 'Armadura', items: ['hp', 'shield'] },
   { name: 'Motores', items: ['speed', 'dash', 'dashCooldown'] },
-  { name: 'Cañón', items: ['fireRate', 'shipAmmo', 'autofire', 'weaponSlots', 'weaponFusion', 'autoEquip', 'sobrecarga'] },
+  { name: 'Cañón', items: ['fireRate', 'shipAmmo', 'weaponSlots', 'weaponFusion', 'autoEquip', 'sobrecarga'] },
   { name: 'Bombas', items: ['bomb', 'bombFull'] },
   { name: 'Recolección', items: ['magnet', 'heart', 'eficienciaMult', 'inflacion'] },
   { name: 'Pinturas', items: ['skin_red', 'skin_green', 'skin_purple', 'skin_gold', 'skin_white'] },

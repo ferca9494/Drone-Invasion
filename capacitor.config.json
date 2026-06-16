@@ -1,0 +1,13 @@
+{
+  "appId": "com.tunombre.spaceshooter",
+  "appName": "Space Shooter",
+  "webDir": "www",
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 1000
+    }
+  },
+  "android": {
+    "orientation": "portrait"
+  }
+}

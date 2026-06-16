@@ -5,10 +5,18 @@ var menuDiv, shopDiv, optionsDiv, menuPtsSpan, shopPtsSpan, shopItemsDiv, uiDiv;
 var levelIntroDiv, bossHpBar, bossHpFill;
 var optSoundSpan, optMouseSpan;
 
+function resizeCanvas() {
+  var rect = canvas.getBoundingClientRect();
+  var dpr = window.devicePixelRatio || 1;
+  canvas.width = 480 * dpr;
+  canvas.height = 720 * dpr;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+}
+
 function initDOM() {
   canvas = document.getElementById('game');
   ctx = canvas.getContext('2d');
-  canvas.width = 480; canvas.height = 720;
+  resizeCanvas();
   scoreSpan = document.getElementById('score');
   weaponSpan = document.getElementById('weapon');
   levelNumSpan = document.getElementById('levelNum');
@@ -39,6 +47,13 @@ function init() {
   initDOM(); loadData(); loadOptions(); initAudio(); initStars();
   menuDiv.style.display = 'flex'; menuPtsSpan.textContent = gameData.points;
   updateOptionsUI();
+  if (isMobile()) {
+    document.getElementById('touch-controls').style.display = 'block';
+    setupTouchControls();
+    setupCanvasTouch();
+    optionsData.mouseControl = true;
+  }
+  window.addEventListener('resize', resizeCanvas);
   loop();
 }
 init();

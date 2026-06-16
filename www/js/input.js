@@ -48,3 +48,49 @@ document.addEventListener('mousemove', function (e) {
   mouseX = Math.max(20, Math.min(460, mouseX));
   mouseY = Math.max(25, Math.min(695, mouseY));
 });
+
+// Touch controls
+function isMobile() {
+  return 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+}
+
+function setupTouchControls() {
+  var btns = document.querySelectorAll('#touch-controls button[data-key]');
+  btns.forEach(function(btn) {
+    var key = btn.getAttribute('data-key');
+    btn.addEventListener('touchstart', function(e) {
+      e.preventDefault();
+      keys[key] = true;
+    });
+    btn.addEventListener('touchend', function(e) {
+      e.preventDefault();
+      keys[key] = false;
+    });
+    btn.addEventListener('touchcancel', function(e) {
+      e.preventDefault();
+      keys[key] = false;
+    });
+  });
+}
+
+// Canvas touch movement (called after DOM is ready)
+function setupCanvasTouch() {
+  canvas.addEventListener('touchmove', function(e) {
+    e.preventDefault();
+    var rect = canvas.getBoundingClientRect();
+    var touch = e.touches[0];
+    mouseX = (touch.clientX - rect.left) * (canvas.width / rect.width);
+    mouseY = (touch.clientY - rect.top) * (canvas.height / rect.height);
+    mouseX = Math.max(20, Math.min(460, mouseX));
+    mouseY = Math.max(25, Math.min(695, mouseY));
+  });
+  canvas.addEventListener('touchstart', function(e) {
+    e.preventDefault();
+    var rect = canvas.getBoundingClientRect();
+    var touch = e.touches[0];
+    mouseX = (touch.clientX - rect.left) * (canvas.width / rect.width);
+    mouseY = (touch.clientY - rect.top) * (canvas.height / rect.height);
+    mouseX = Math.max(20, Math.min(460, mouseX));
+    mouseY = Math.max(25, Math.min(695, mouseY));
+  });
+}

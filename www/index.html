@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Space Shooter</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+  <div id="game-container">
+    <canvas id="game"></canvas>
+
+    <span style="display:none" id="levelInfo"></span>
+    <div style="display:none">
+      <span id="score">0</span>
+      <span id="weapon">Normal</span>
+      <span id="levelNum">1</span>
+      <span id="bombCount"><span id="bombsLeft">0</span></span>
+      <span id="bombFullCount"><span id="bombFullLeft">0</span></span>
+    </div>
+
+    <div id="planetSelect" class="overlay" style="display:none">
+      <h2 id="planetSelectTitle">SELECCIONA PLANETA</h2>
+      <div id="planetGrid"></div>
+      <button class="btn btn-small" onclick="window.goBackToMenu()">VOLVER</button>
+    </div>
+
+    <div id="gameOver">
+      <div class="derrota-label">— DERROTA —</div>
+      <span id="gameOverText">GAME OVER</span>
+      <div class="pts">+<span id="earnedPts">0</span> puntos</div>
+      <div class="sub-pts">Puntaje total: <span id="finalScore2" style="color:#0ff">0</span></div>
+      <button class="end-btn" onclick="window.goShop()">IR A TIENDA</button>
+      <small>Presiona <span>R</span> para reiniciar</small>
+    </div>
+
+    <div id="rewardScreen" class="overlay" style="display:none;z-index:40">
+      <h2 id="rewardTitle">VICTORIA</h2>
+      <div class="credits">FERNANDO CA&Ntilde;ETE <span class="credits-dot">·</span> <span class="credits-role">Programador &amp; Dise&ntilde;ador</span></div>
+      <div class="pts" id="rewardPts">Puntuaci&oacute;n final: <span id="finalScore" style="color:#fff">0</span></div>
+      <div id="rewardLabel">RECOMPENSAS DESBLOQUEADAS</div>
+      <div id="rewardList" style="margin:0 auto 12px;text-align:left;display:inline-block"></div>
+      <button class="btn btn-small" onclick="window.closeRewards()">CONTINUAR</button>
+    </div>
+
+    <div id="bossHpBar">
+      <div id="bossHpFill"></div>
+    </div>
+
+    <div id="menu" class="overlay">
+      <h1>SPACE SHOOTER</h1>
+      <div class="subtitle">· 5 NIVELES · JEFE FINAL · MEJORAS ·</div>
+      <div class="totalPts">PUNTOS TOTALES: <span id="menuPts">0</span></div>
+
+      <button class="btn btn-success" onclick="window.gameStart()">COMENZAR</button>
+      <button class="btn btn-small" onclick="window.gameOpenShop()">TIENDA</button>
+      <button class="btn btn-small" onclick="window.gameOpenOptions()" id="optionsBtn">OPCIONES</button>
+    </div>
+
+    <div id="shop" class="overlay">
+      <h2>TIENDA</h2>
+      <div class="pts">PUNTOS: <span id="shopPts">0</span></div>
+      <div id="threat-row">
+        <div id="threat-bar-wrap">
+          <div id="threat-bar">
+            <div id="threat-fill"></div>
+            <div class="threat-marker" style="left:33.33%">0</div>
+            <div class="threat-marker" style="left:66.66%">0</div>
+            <div class="threat-marker" style="left:100%">0</div>
+          </div>
+          <div id="threat-labels">
+            <span style="left:16.66%">1000a</span>
+            <span style="left:50%">2000a</span>
+            <span style="left:83.33%">3000a</span>
+          </div>
+          <div id="threat-level"></div>
+        </div>
+        <button id="skullBtn" class="skull-btn" onclick="window.startSpecialLevel()" title="Nivel Espacial">☠</button>
+      </div>
+      <div class="shop-tabs">
+        <button class="tab-btn" data-tab="0" onclick="window.shopSetTab(0)">ARMAS</button>
+        <button class="tab-btn" data-tab="1" onclick="window.shopSetTab(1)">DRONES</button>
+        <button class="tab-btn" data-tab="2" onclick="window.shopSetTab(2)">NAVE</button>
+      </div>
+      <div class="shop-items" id="shopItems"></div>
+      <button class="btn btn-small" onclick="window.gameCloseShop()">VOLVER</button>
+    </div>
+
+    <div id="options" class="overlay" style="display:none">
+      <h2 style="color:#0ff;margin-bottom:30px">OPCIONES</h2>
+      <div class="opt-row">
+        <span class="opt-label">Sonido</span>
+        <div class="opt-toggle" id="optSound" tabindex="0" role="button" onclick="window.toggleSound()">ON</div>
+      </div>
+      <div class="opt-row">
+        <span class="opt-label">Control por Mouse</span>
+        <div class="opt-toggle" id="optMouse" tabindex="0" role="button" onclick="window.toggleMouse()">OFF</div>
+      </div>
+      <button class="btn btn-small" onclick="window.gameCloseOptions()" style="margin-top:40px">VOLVER</button>
+      <div style="margin-top:18px"><button class="btn btn-small"
+          style="border-color:#644;color:#866;font-size:12px;padding:6px 20px;min-width:auto"
+          onclick="window.resetAllData()">REINICIAR DATOS</button></div>
+    </div>
+
+    <div id="touch-controls" style="display:none">
+      <div id="touch-dpad">
+        <button data-key="ArrowUp">▲</button>
+        <button data-key="ArrowDown">▼</button>
+        <button data-key="ArrowLeft">◀</button>
+        <button data-key="ArrowRight">▶</button>
+      </div>
+      <div id="touch-actions">
+        <button data-key=" ">🔥</button>
+        <button data-key="q">Q</button>
+        <button data-key="e">E</button>
+        <button data-key="z">Z</button>
+        <button data-key="c">C</button>
+        <button data-key="f">F</button>
+        <button data-key="b">B</button>
+        <button data-key="x">X</button>
+      </div>
+      <button id="touch-pause" data-key="Escape">⏸</button>
+    </div>
+  </div>
+
+  <script src="js/data.js"></script>
+  <script src="js/audio.js"></script>
+  <script src="js/input.js"></script>
+  <script src="js/persistence.js"></script>
+  <script src="js/entities.js"></script>
+  <script src="js/render.js"></script>
+  <script src="js/shop.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/main.js"></script>
+</body>
+
+</html>

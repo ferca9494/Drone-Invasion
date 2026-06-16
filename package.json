@@ -1,0 +1,26 @@
+{
+  "name": "proyectojuego",
+  "version": "1.0.0",
+  "description": "Un emocionante juego de disparos en el espacio desarrollado en JavaScript vanilla con Canvas HTML5. ¡Defiéndete de oleadas de enemigos, mejora tu nave y derrota a poderosos jefes!",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ferca9494/Drone-Invasion.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/ferca9494/Drone-Invasion/issues"
+  },
+  "homepage": "https://github.com/ferca9494/Drone-Invasion#readme",
+  "dependencies": {
+    "@capacitor/android": "^8.4.0",
+    "@capacitor/cli": "^8.4.0",
+    "@capacitor/core": "^8.4.0"
+  }
+}

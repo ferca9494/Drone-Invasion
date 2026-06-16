@@ -995,8 +995,7 @@ function update() {
   if (dashEffectTimer > 0) dashEffectTimer--;
 
   // Shooting
-  var autoFire = gameData.upgrades.autofire > 0;
-  if ((keys[' '] || keys['Space']) || autoFire) {
+  if (keys[' '] || keys['Space']) {
     var now = Date.now();
     var fireInterval = baseFireRate / fireRateMult;
     if (player.weapon === 'laser' && !player.fusion) {
